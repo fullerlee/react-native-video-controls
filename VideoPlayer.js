@@ -33,6 +33,8 @@ export default class VideoPlayer extends Component {
     rate: 1,
     showTimeRemaining: true,
     showHours: false,
+    middleBarContent: null,
+    showMiddleBar: false,
   };
 
   constructor(props) {
@@ -70,6 +72,8 @@ export default class VideoPlayer extends Component {
       currentTime: 0,
       error: false,
       duration: 0,
+      middleBarContent: this.props.middleBarContent,
+      
     };
 
     /**
@@ -90,6 +94,7 @@ export default class VideoPlayer extends Component {
       onBack: this.props.onBack || this._onBack.bind(this),
       onEnd: this.props.onEnd || this._onEnd.bind(this),
       onScreenTouch: this._onScreenTouch.bind(this),
+      onScreenLongTouch: this._onScreenLongTouch.bind(this),
       onEnterFullscreen: this.props.onEnterFullscreen,
       onExitFullscreen: this.props.onExitFullscreen,
       onShowControls: this.props.onShowControls,
@@ -109,6 +114,7 @@ export default class VideoPlayer extends Component {
       toggleFullscreen: this._toggleFullscreen.bind(this),
       togglePlayPause: this._togglePlayPause.bind(this),
       toggleControls: this._toggleControls.bind(this),
+      toggleMiddleBar: this._toggleMiddleBar.bind(this),
       toggleTimer: this._toggleTimer.bind(this),
     };
 
@@ -288,6 +294,18 @@ export default class VideoPlayer extends Component {
   }
 
   /**
+   * Long press listener.
+   * This will toggle the display of the user's long press View, if specified
+   */
+   _onScreenLongTouch() {
+     if (this.state.middleBarContent) {
+      //Pause playback
+      this.methods.togglePlayPause(true);
+      this.methods.toggleMiddleBar(true);
+     }
+   }
+
+  /**
    * This is a single and double tap listener
    * when the user taps the screen anywhere.
    * One tap toggles controls and/or toggles pause,
@@ -453,6 +471,16 @@ export default class VideoPlayer extends Component {
   }
 
   /**
+   * Function to toggles middle bar based on
+   * current state.
+   */
+  _toggleMiddleBar() {
+    let state = this.state;
+    state.showMiddleBar = !state.showMiddleBar;
+    this.setState(state);
+  }
+
+  /**
    * Function to toggle controls based on
    * current state.
    */
@@ -503,14 +531,15 @@ export default class VideoPlayer extends Component {
   /**
    * Toggle playing state on <Video> component
    */
-  _togglePlayPause() {
+  _togglePlayPause(forcePause) {
     let state = this.state;
-    state.paused = !state.paused;
+    state.paused = forcePause || !state.paused;
 
     if (state.paused) {
       typeof this.events.onPause === 'function' && this.events.onPause();
     } else {
       typeof this.events.onPlay === 'function' && this.events.onPlay();
+      this.methods.toggleMiddleBar(false);
     }
 
     this.setState(state);
@@ -1038,6 +1067,16 @@ export default class VideoPlayer extends Component {
   }
 
   /**
+   * Render the middle bar, if supplied
+   * 
+   */
+  renderMiddleBar() {
+    if (this.state.showMiddleBar) {
+      return (this.state.middleBarContent);
+    }
+  }
+
+  /**
    * Render bottom control group and wrap it in a holder
    */
   renderBottomControls() {
@@ -1213,6 +1252,7 @@ export default class VideoPlayer extends Component {
     return (
       <TouchableWithoutFeedback
         onPress={this.events.onScreenTouch}
+        onLongPress={this.events.onScreenLongTouch}
         style={[styles.player.container, this.styles.containerStyle]}>
         <View style={[styles.player.container, this.styles.containerStyle]}>
           <Video
@@ -1235,6 +1275,7 @@ export default class VideoPlayer extends Component {
           {this.renderError()}
           {this.renderLoader()}
           {this.renderTopControls()}
+          {this.renderMiddleBar()}
           {this.renderBottomControls()}
         </View>
       </TouchableWithoutFeedback>
