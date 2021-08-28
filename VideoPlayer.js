@@ -33,8 +33,6 @@ export default class VideoPlayer extends Component {
     rate: 1,
     showTimeRemaining: true,
     showHours: false,
-    middleBarContent: null,
-    showMiddleBar: false,
   };
 
   constructor(props) {
@@ -72,8 +70,6 @@ export default class VideoPlayer extends Component {
       currentTime: 0,
       error: false,
       duration: 0,
-      middleBarContent: this.props.middleBarContent,
-      
     };
 
     /**
@@ -114,7 +110,6 @@ export default class VideoPlayer extends Component {
       toggleFullscreen: this._toggleFullscreen.bind(this),
       togglePlayPause: this._togglePlayPause.bind(this),
       toggleControls: this._toggleControls.bind(this),
-      toggleMiddleBar: this._toggleMiddleBar.bind(this),
       toggleTimer: this._toggleTimer.bind(this),
     };
 
@@ -298,10 +293,8 @@ export default class VideoPlayer extends Component {
    * This will toggle the display of the user's long press View, if specified
    */
    _onScreenLongTouch() {
-     if (this.state.middleBarContent) {
-      //Pause playback
-      this.methods.togglePlayPause(true);
-      this.methods.toggleMiddleBar(true);
+     if (typeof this.props.onLongPress) {
+      this.props.onLongPress();
      }
    }
 
@@ -471,16 +464,6 @@ export default class VideoPlayer extends Component {
   }
 
   /**
-   * Function to toggles middle bar based on
-   * current state.
-   */
-  _toggleMiddleBar() {
-    let state = this.state;
-    state.showMiddleBar = !state.showMiddleBar;
-    this.setState(state);
-  }
-
-  /**
    * Function to toggle controls based on
    * current state.
    */
@@ -539,7 +522,6 @@ export default class VideoPlayer extends Component {
       typeof this.events.onPause === 'function' && this.events.onPause();
     } else {
       typeof this.events.onPlay === 'function' && this.events.onPlay();
-      this.methods.toggleMiddleBar(false);
     }
 
     this.setState(state);
@@ -1067,16 +1049,6 @@ export default class VideoPlayer extends Component {
   }
 
   /**
-   * Render the middle bar, if supplied
-   * 
-   */
-  renderMiddleBar() {
-    if (this.state.showMiddleBar) {
-      return (this.state.middleBarContent);
-    }
-  }
-
-  /**
    * Render bottom control group and wrap it in a holder
    */
   renderBottomControls() {
@@ -1275,7 +1247,6 @@ export default class VideoPlayer extends Component {
           {this.renderError()}
           {this.renderLoader()}
           {this.renderTopControls()}
-          {this.renderMiddleBar()}
           {this.renderBottomControls()}
         </View>
       </TouchableWithoutFeedback>
